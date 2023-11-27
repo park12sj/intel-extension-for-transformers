@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LLM Runtime &mdash; Intel® Extension for Transformers 0.1.dev1+gd2bd4d9 documentation</title>
+  <title>LLM Runtime &mdash; Intel® Extension for Transformers 0.1.dev1+ge33f2f7 documentation</title>
       <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
@@ -128,7 +128,8 @@
 |<a class="reference external" href="https://huggingface.co/facebook/opt-125m">OPT-125m</a>, <a class="reference external" href="https://huggingface.co/facebook/opt-350m">OPT-350m</a>, <a class="reference external" href="https://huggingface.co/facebook/opt-1.3b">OPT-1.3B</a>, <a class="reference external" href="https://huggingface.co/facebook/opt-13b">OPT-13B</a>| ✅ | ✅ |  Latest |
 |<a class="reference external" href="https://huggingface.co/THUDM/chatglm-6b">ChatGLM-6B</a>, <a class="reference external" href="https://huggingface.co/THUDM/chatglm2-6b">ChatGLM2-6B</a>| ✅ | ✅ |  Latest |
 |<a class="reference external" href="https://huggingface.co/baichuan-inc/Baichuan-13B-Chat">Baichuan-13B-Chat</a>, <a class="reference external" href="https://huggingface.co/baichuan-inc/Baichuan2-13B-Chat">Baichuan2-13B-Chat</a>| ✅ | ✅ |  Latest |
-|<a class="reference external" href="https://huggingface.co/mistralai/Mistral-7B-v0.1">Mistral-7B</a>| ✅ | ✅ | 4.34.0 or newer |</p>
+|<a class="reference external" href="https://huggingface.co/mistralai/Mistral-7B-v0.1">Mistral-7B</a>| ✅ | ✅ | 4.34.0 or newer |
+|<a class="reference external" href="https://huggingface.co/Qwen/Qwen-7B-Chat">Qwen-7B</a>, <a class="reference external" href="https://huggingface.co/Qwen/Qwen-14B-Chat">Qwen-14b</a>| ✅ | ✅ |  Latest |</p>
 </section>
 <section id="code-generation">
 <h3>Code Generation<a class="headerlink" href="#code-generation" title="Link to this heading"></a></h3>
@@ -175,6 +176,22 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">streamer</span><span class="o">=</span><span class="n">streamer</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>To directly load a GPTQ model, here is the sample code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">TextStreamer</span>
+<span class="kn">from</span> <span class="nn">intel_extension_for_transformers.transformers</span> <span class="kn">import</span> <span class="n">AutoModelForCausalLM</span><span class="p">,</span> <span class="n">WeightOnlyQuantConfig</span>
+
+<span class="c1"># Download Hugging Face GPTQ model to local path</span>
+<span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;PATH_TO_MODEL&quot;</span>  <span class="c1"># local path to model</span>
+<span class="n">woq_config</span> <span class="o">=</span> <span class="n">WeightOnlyQuantConfig</span><span class="p">(</span><span class="n">from_gptq</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Once upon a time, a little girl&quot;</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">input_ids</span>
+<span class="n">streamer</span> <span class="o">=</span> <span class="n">TextStreamer</span><span class="p">(</span><span class="n">tokenizer</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">quantization_config</span><span class="o">=</span><span class="n">woq_config</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">streamer</span><span class="o">=</span><span class="n">streamer</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>To enable <a class="reference external" href="./docs/infinite_inference.html">StreamingLLM for infinite inference</a>, here is the sample code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">TextStreamer</span>
 <span class="kn">from</span> <span class="nn">intel_extension_for_transformers.transformers</span> <span class="kn">import</span> <span class="n">AutoModelForCausalLM</span><span class="p">,</span> <span class="n">WeightOnlyQuantConfig</span>
@@ -201,9 +218,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 | weight_dtype      | String      | Data type of quantized weight: int4/int8 (default int4)                                 |
 | alg               | String      | Quantization algorithm: sym/asym (default sym)                                          |
 | group_size        | Int         | Group size: Int (default: 32)                                                           |
-| scale_dtype       | String      | Data type of scales: fp32/bf16 (dafault fp32)                                           |
+| scale_dtype       | String      | Data type of scales: fp32/bf16 (default fp32)                                           |
 | use_ggml          | Bool        | Enable ggml for quantization and inference (default: False)                             |
-| not_quant         | Bool        | Determine whether or not the model will be quantized. (default: False)                  |
+| use_quant         | Bool        | Determine whether or not the model will be quantized. (default: True)                  |
 | use_cache         | Bool        | Use local quantized model if file exists (default: False)                               |</p>
 <p>Argument description of generate function:
 | Argument          |  Type       | Description                                                                             |
@@ -217,7 +234,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 | batch_size        | Int         | Batch size for prompt processing (default: 512)                                         |
 | ctx_size          | Int         | Size of the prompt context (default: 512)                                               |
 | seed              | Int         | NG seed (default: -1, use random seed for &lt; 0)                                          |
-| threads           | Int         | Number of threads to use during computation (default: 8)                                |
+| threads           | Int         | Number of threads to use during computation (default: min(available_core_num, OMP_NUM_THREADS))                                       |
+| memory_dtype      | str         | Data type of the KV memory; one of f16, f32, auto (enables Fused Attention when possible otherwise fallback to f16) (default: auto)   |
 | repetition_penalty| Float       | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
 | num_beams         | Int         | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
 | do_sample         | Int         | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
@@ -229,7 +247,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 | early_stopping    | Bool        | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
 | max_new_tokens    | Int         | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
 | streamer          | Class       | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
-| stopping_criteria | Class       | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |</p>
+| stopping_criteria | Class       | Please refer to <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |
+| pad_token         | Int         | pad_token_id of <a class="reference external" href="https://huggingface.co/docs/transformers/v4.35.0/en/main_classes/text_generation#generation">Transformer’s generate</a> |</p>
 </section>
 <section id="multi-round-chat">
 <h3>3. Multi-Round Chat<a class="headerlink" href="#multi-round-chat" title="Link to this heading"></a></h3>
@@ -480,7 +499,7 @@ Here is a simple example, which requires a minimum generation length of 80 token
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   <jinja2.runtime.BlockReference object at 0x7fecf117ee30> 
+   <jinja2.runtime.BlockReference object at 0x7fef25295030> 
   <p></p><div><a href='https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html' data-cookie-notice='true'>Cookies</a> <a href='https://www.intel.com/content/www/us/en/privacy/intel-privacy-notice.html'>| Privacy</a></div>
 
 
